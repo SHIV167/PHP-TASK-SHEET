@@ -1,2 +1,98 @@
 # PHP-TASK-SHEET
 HP Interview Test   1.  Get the data from the API given  below and process in PHP :-           http://restapi.adequateshop.com/api/Tourist?page=1  2. Display the data in table form  using datatable jquery.  3. Export the data in Excel.
+
+=================================================SOLUTION===================================================================================
+
+
+<?php
+
+$url = 'http://restapi.adequateshop.com/api/tourist?page=1';
+$data = file_get_contents($url);
+$json_data = json_decode($data, true);
+
+
+// Now, $data contains the API response as a JSON string.
+
+?>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Data Table Example</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+</head>
+<body>
+    <table id="dataTable">
+        <!-- Your table headers here -->
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tourist Name</th>
+                <th>Tourist Email</th>
+                <th>Tourist Location</th>
+                <th>Create Date</th>
+                <!-- Add more columns as needed -->
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            foreach ($json_data['data'] as $item) {
+                echo "<tr>";
+                echo "<td>" . $item['id'] . "</td>";
+                echo "<td>" . $item['tourist_name'] . "</td>";
+                echo "<td>" . $item['tourist_email'] . "</td>";
+                echo "<td>" . $item['tourist_location'] . "</td>";
+                echo "<td>" . $item['createdat'] . "</td>";
+
+                
+                // Add more columns here
+                echo "</tr>";
+            }
+            ?>
+        </tbody>
+    </table>
+
+    <script>
+        $(document).ready(function() {
+            $('#dataTable').DataTable();
+        });
+    </script>
+</body>
+
+<?php  
+
+require 'vendor/autoload.php'; // Include the PhpSpreadsheet library "composer require phpoffice/phpspreadsheet"
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Add headers
+$sheet->setCellValue('A1', 'ID');
+$sheet->setCellValue('B1', 'tourist name');
+$sheet->setCellValue('C1', 'tourist location');
+$sheet->setCellValue('D1', 'tourist email');
+
+
+// Loop through the data and add it to the spreadsheet
+$row = 2;
+foreach ($json_data['data'] as $item) {
+    $sheet->setCellValue('A' . $row, $item['id']);
+    $sheet->setCellValue('B' . $row, $item['tourist_name']);
+    $sheet->setCellValue('C' . $row, $item['tourist_location']);
+    $sheet->setCellValue('D' . $row, $item['tourist_email']);
+    
+    // Add more columns for other attributes if needed
+    $row++;
+}
+
+$writer = new Xlsx($spreadsheet);
+$writer->save('tourist_data.xlsx');
+
+
+
+?>
+</html>
